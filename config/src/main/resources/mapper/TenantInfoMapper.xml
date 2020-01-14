@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alibaba.nacos.config.server.mybatis.domain.mapper.TenantInfoMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.alibaba.nacos.config.server.mybatis.domain.entity.TenantInfo">
+        <id column="ID" property="id"/>
+        <result column="KP" property="kp"/>
+        <result column="TENANT_ID" property="tenantId"/>
+        <result column="TENANT_NAME" property="tenantName"/>
+        <result column="TENANT_DESC" property="tenantDesc"/>
+        <result column="CREATE_SOURCE" property="createSource"/>
+        <result column="GMT_CREATE" property="gmtCreate"/>
+        <result column="GMT_MODIFIED" property="gmtModified"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+            ID, KP, TENANT_ID, TENANT_NAME, TENANT_DESC, CREATE_SOURCE, GMT_CREATE, GMT_MODIFIED
+        </sql>
+
+</mapper>

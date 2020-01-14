@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alibaba.nacos.config.server.mybatis.domain.mapper.ConfigTagsRelationMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigTagsRelation">
+        <id column="NID" property="nid"/>
+        <result column="ID" property="id"/>
+        <result column="TAG_NAME" property="tagName"/>
+        <result column="TAG_TYPE" property="tagType"/>
+        <result column="DATA_ID" property="dataId"/>
+        <result column="GROUP_ID" property="groupId"/>
+        <result column="TENANT_ID" property="tenantId"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+            ID, TAG_NAME, TAG_TYPE, DATA_ID, GROUP_ID, TENANT_ID, NID
+        </sql>
+
+</mapper>

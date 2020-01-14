@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alibaba.nacos.config.server.mybatis.domain.mapper.TenantCapacityMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.alibaba.nacos.config.server.mybatis.domain.entity.TenantCapacity">
+        <id column="ID" property="id"/>
+        <result column="TENANT_ID" property="tenantId"/>
+        <result column="QUOTA" property="quota"/>
+        <result column="USAGE" property="usage"/>
+        <result column="MAX_SIZE" property="maxSize"/>
+        <result column="MAX_AGGR_COUNT" property="maxAggrCount"/>
+        <result column="MAX_AGGR_SIZE" property="maxAggrSize"/>
+        <result column="MAX_HISTORY_COUNT" property="maxHistoryCount"/>
+        <result column="GMT_CREATE" property="gmtCreate"/>
+        <result column="GMT_MODIFIED" property="gmtModified"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+            ID, TENANT_ID, QUOTA, USAGE, MAX_SIZE, MAX_AGGR_COUNT, MAX_AGGR_SIZE, MAX_HISTORY_COUNT, GMT_CREATE, GMT_MODIFIED
+        </sql>
+
+</mapper>

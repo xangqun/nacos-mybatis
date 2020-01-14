@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alibaba.nacos.config.server.mybatis.domain.mapper.AppListMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.alibaba.nacos.config.server.mybatis.domain.entity.AppList">
+        <id column="ID" property="id"/>
+        <result column="APP_NAME" property="appName"/>
+        <result column="IS_DYNAMIC_COLLECT_DISABLED" property="isDynamicCollectDisabled"/>
+        <result column="LAST_SUB_INFO_COLLECTED_TIME" property="lastSubInfoCollectedTime"/>
+        <result column="SUB_INFO_LOCK_OWNER" property="subInfoLockOwner"/>
+        <result column="SUB_INFO_LOCK_TIME" property="subInfoLockTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+            ID, APP_NAME, IS_DYNAMIC_COLLECT_DISABLED, LAST_SUB_INFO_COLLECTED_TIME, SUB_INFO_LOCK_OWNER, SUB_INFO_LOCK_TIME
+        </sql>
+
+</mapper>
