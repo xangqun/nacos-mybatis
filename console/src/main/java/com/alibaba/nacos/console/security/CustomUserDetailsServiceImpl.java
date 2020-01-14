@@ -17,6 +17,7 @@ package com.alibaba.nacos.console.security;
 
 
 import com.alibaba.nacos.config.server.model.User;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.Users;
 import com.alibaba.nacos.config.server.service.PersistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,10 +38,14 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-        User user = persistService.findUserByUsername(userName);
+        Users user = persistService.findUserByUsername(userName);
         if (user == null) {
             throw new UsernameNotFoundException(userName);
         }
         return new CustomUserDetails(user);
+    }
+
+    public void updateUserPassword(String username, String password) throws Exception {
+        persistService.updateUserPassword(username, password);
     }
 }

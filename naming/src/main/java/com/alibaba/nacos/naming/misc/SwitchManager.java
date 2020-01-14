@@ -293,7 +293,7 @@ public class SwitchManager implements RecordListener<SwitchDomain> {
         switchDomain.setCheckTimes(newSwitchDomain.getCheckTimes());
         switchDomain.setHttpHealthParams(newSwitchDomain.getHttpHealthParams());
         switchDomain.setTcpHealthParams(newSwitchDomain.getTcpHealthParams());
-        switchDomain.setMysqlHealthParams(newSwitchDomain.getMysqlHealthParams());
+//        switchDomain.setMysqlHealthParams(newSwitchDomain.getMysqlHealthParams());
         switchDomain.setIncrementalList(newSwitchDomain.getIncrementalList());
         switchDomain.setServerStatusSynchronizationPeriodMillis(newSwitchDomain.getServerStatusSynchronizationPeriodMillis());
         switchDomain.setServiceStatusSynchronizationPeriodMillis(newSwitchDomain.getServiceStatusSynchronizationPeriodMillis());

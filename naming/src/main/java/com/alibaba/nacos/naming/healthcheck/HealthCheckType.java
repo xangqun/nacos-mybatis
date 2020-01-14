@@ -37,7 +37,11 @@ public enum HealthCheckType {
     /**
      * MySQL type
      */
-    MYSQL("mysql", AbstractHealthChecker.Mysql.class),
+//    MYSQL("mysql", AbstractHealthChecker.Mysql.class),
+    /**
+     * DB type
+     */
+    DB("db", AbstractHealthChecker.DB.class),
     /**
      * No check
      */

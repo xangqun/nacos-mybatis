@@ -16,6 +16,7 @@
 package com.alibaba.nacos.console.security;
 
 import com.alibaba.nacos.config.server.model.User;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.Users;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,9 +30,9 @@ import java.util.Collection;
  */
 public class CustomUserDetails implements UserDetails {
 
-    private User user;
+    private Users user;
 
-    public CustomUserDetails(User user) {
+    public CustomUserDetails(Users user) {
         this.user = user;
     }
 

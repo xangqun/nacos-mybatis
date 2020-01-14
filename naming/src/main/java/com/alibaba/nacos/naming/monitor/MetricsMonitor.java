@@ -31,7 +31,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Nacos
  */
 public class MetricsMonitor {
-    private static AtomicInteger mysqlHealthCheck = new AtomicInteger();
+//    private static AtomicInteger mysqlHealthCheck = new AtomicInteger();
+    private static AtomicInteger dbHealthCheck = new AtomicInteger();
     private static AtomicInteger httpHealthCheck = new AtomicInteger();
     private static AtomicInteger tcpHealthCheck = new AtomicInteger();
     private static AtomicInteger serviceCount = new AtomicInteger();
@@ -45,8 +46,8 @@ public class MetricsMonitor {
     static {
         List<Tag> tags = new ArrayList<Tag>();
         tags.add(new ImmutableTag("module", "naming"));
-        tags.add(new ImmutableTag("name", "mysqlhealthCheck"));
-        Metrics.gauge("nacos_monitor", tags, mysqlHealthCheck);
+        tags.add(new ImmutableTag("name", "dbhealthCheck"));
+        Metrics.gauge("nacos_monitor", tags, dbHealthCheck);
 
         tags = new ArrayList<Tag>();
         tags.add(new ImmutableTag("module", "naming"));
@@ -94,8 +95,12 @@ public class MetricsMonitor {
         Metrics.gauge("nacos_monitor", tags, failedPush);
     }
 
-    public static AtomicInteger getMysqlHealthCheckMonitor() {
-        return mysqlHealthCheck;
+//    public static AtomicInteger getMysqlHealthCheckMonitor() {
+//        return mysqlHealthCheck;
+//    }
+
+    public static AtomicInteger getDbHealthCheckMonitor() {
+        return dbHealthCheck;
     }
 
     public static AtomicInteger getHttpHealthCheckMonitor() {

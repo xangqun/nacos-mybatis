@@ -29,7 +29,7 @@ const getState = () => dispatch =>
         data: {
           version: res.version,
           standaloneMode: res.standalone_mode,
-          functionMode: res.function_mode,
+          functionMode: null,
         },
       });
     })

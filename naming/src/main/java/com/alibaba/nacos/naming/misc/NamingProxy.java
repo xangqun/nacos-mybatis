@@ -16,6 +16,8 @@
 package com.alibaba.nacos.naming.misc;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.nacos.common.constant.HttpHeaderConsts;
+import com.alibaba.nacos.common.util.VersionUtils;
 import com.alibaba.nacos.naming.boot.RunningConfig;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.Response;
@@ -43,8 +45,8 @@ public class NamingProxy {
         try {
             Map<String, String> headers = new HashMap<>(128);
 
-            headers.put("Client-Version", UtilsAndCommons.SERVER_VERSION);
-            headers.put("User-Agent", UtilsAndCommons.SERVER_VERSION);
+            headers.put(HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.VERSION);
+            headers.put(HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION);
             headers.put("Connection", "Keep-Alive");
 
             HttpClient.asyncHttpPutLarge("http://" + server + RunningConfig.getContextPath()
@@ -54,7 +56,7 @@ public class NamingProxy {
                     @Override
                     public Object onCompleted(Response response) throws Exception {
                         if (HttpURLConnection.HTTP_OK != response.getStatusCode()) {
-                            Loggers.EPHEMERAL.error("failed to req API: {}, code: {}, msg: {}",
+                            Loggers.DISTRO.error("failed to req API: {}, code: {}, msg: {}",
                                 "http://" + server + RunningConfig.getContextPath() +
                                     UtilsAndCommons.NACOS_NAMING_CONTEXT + TIMESTAMP_SYNC_URL,
                                 response.getStatusCode(), response.getResponseBody());
@@ -64,13 +66,13 @@ public class NamingProxy {
 
                     @Override
                     public void onThrowable(Throwable t) {
-                        Loggers.EPHEMERAL.error("failed to req API:" + "http://" + server
+                        Loggers.DISTRO.error("failed to req API:" + "http://" + server
                             + RunningConfig.getContextPath()
                             + UtilsAndCommons.NACOS_NAMING_CONTEXT + TIMESTAMP_SYNC_URL, t);
                     }
                 });
         } catch (Exception e) {
-            Loggers.EPHEMERAL.warn("NamingProxy", e);
+            Loggers.DISTRO.warn("NamingProxy", e);
         }
     }
 
@@ -112,8 +114,8 @@ public class NamingProxy {
         try {
             Map<String, String> headers = new HashMap<>(128);
 
-            headers.put("Client-Version", UtilsAndCommons.SERVER_VERSION);
-            headers.put("User-Agent", UtilsAndCommons.SERVER_VERSION);
+            headers.put(HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.VERSION);
+            headers.put(HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION);
             headers.put("Accept-Encoding", "gzip,deflate,sdch");
             headers.put("Connection", "Keep-Alive");
             headers.put("Content-Encoding", "gzip");
@@ -141,8 +143,9 @@ public class NamingProxy {
 
     public static String reqAPI(String api, Map<String, String> params, String curServer) throws Exception {
         try {
-            List<String> headers = Arrays.asList("Client-Version", UtilsAndCommons.SERVER_VERSION,
-                "User-Agent", UtilsAndCommons.SERVER_VERSION,
+            List<String> headers = Arrays.asList(
+                    HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.VERSION,
+                    HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION,
                 "Accept-Encoding", "gzip,deflate,sdch",
                 "Connection", "Keep-Alive",
                 "Content-Encoding", "gzip");
@@ -175,8 +178,9 @@ public class NamingProxy {
 
     public static String reqAPI(String api, Map<String, String> params, String curServer, boolean isPost) throws Exception {
         try {
-            List<String> headers = Arrays.asList("Client-Version", UtilsAndCommons.SERVER_VERSION,
-                "User-Agent", UtilsAndCommons.SERVER_VERSION,
+            List<String> headers = Arrays.asList(
+                    HttpHeaderConsts.CLIENT_VERSION_HEADER, VersionUtils.VERSION,
+                    HttpHeaderConsts.USER_AGENT_HEADER, UtilsAndCommons.SERVER_VERSION,
                 "Accept-Encoding", "gzip,deflate,sdch",
                 "Connection", "Keep-Alive",
                 "Content-Encoding", "gzip");

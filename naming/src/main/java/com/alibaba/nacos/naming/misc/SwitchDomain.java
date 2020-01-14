@@ -54,7 +54,7 @@ public class SwitchDomain implements Record, Cloneable {
 
     private TcpHealthParams tcpHealthParams = new TcpHealthParams();
 
-    private MysqlHealthParams mysqlHealthParams = new MysqlHealthParams();
+//    private MysqlHealthParams mysqlHealthParams = new MysqlHealthParams();
 
     private List<String> incrementalList = new ArrayList<>();
 
@@ -250,13 +250,13 @@ public class SwitchDomain implements Record, Cloneable {
         this.tcpHealthParams = tcpHealthParams;
     }
 
-    public MysqlHealthParams getMysqlHealthParams() {
-        return mysqlHealthParams;
-    }
-
-    public void setMysqlHealthParams(MysqlHealthParams mysqlHealthParams) {
-        this.mysqlHealthParams = mysqlHealthParams;
-    }
+//    public MysqlHealthParams getMysqlHealthParams() {
+//        return mysqlHealthParams;
+//    }
+//
+//    public void setMysqlHealthParams(MysqlHealthParams mysqlHealthParams) {
+//        this.mysqlHealthParams = mysqlHealthParams;
+//    }
 
     public long getServerStatusSynchronizationPeriodMillis() {
         return serverStatusSynchronizationPeriodMillis;

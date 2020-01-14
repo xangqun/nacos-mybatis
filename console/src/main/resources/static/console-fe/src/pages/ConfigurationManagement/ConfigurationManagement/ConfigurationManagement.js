@@ -673,9 +673,10 @@ class ConfigurationManagement extends React.Component {
   }
 
   exportData() {
-    let url = `v1/cs/configs?export=true&group=${this.group}&tenant=${getParams(
-      'namespace'
-    )}&appName=${this.appName}&ids=`;
+    let url =
+      `v1/cs/configs?export=true&group=${this.group}&tenant=${getParams('namespace')}&appName=${
+        this.appName
+      }&ids=&dataId=` + this.dataId;
     window.location.href = url;
   }
 
@@ -696,6 +697,52 @@ class ConfigurationManagement extends React.Component {
     }
   }
 
+  multipleSelectionDeletion() {
+    const { locale = {} } = this.props;
+    const self = this;
+    if (configsTableSelected.size === 0) {
+      Dialog.alert({
+        title: locale.delSelectedAlertTitle,
+        content: locale.delSelectedAlertContent,
+      });
+    } else {
+      let toShowDatas = [];
+      configsTableSelected.forEach((value, key, map) => {
+        let item = {};
+        item.dataId = value.dataId;
+        item.group = value.group;
+        toShowDatas.push(item);
+      });
+      Dialog.confirm({
+        title: locale.removeConfiguration,
+        content: (
+          <div style={{ marginTop: '-20px' }}>
+            <h3>{locale.sureDelete}</h3>
+            <Table dataSource={toShowDatas}>
+              <Table.Column title="Data Id" dataIndex="dataId" />
+              <Table.Column title="Group" dataIndex="group" />
+            </Table>
+          </div>
+        ),
+        onOk: () => {
+          let idsStr = '';
+          configsTableSelected.forEach((value, key, map) => {
+            idsStr = `${idsStr + key},`;
+          });
+          const url = `v1/cs/configs?delType=ids&ids=${idsStr}`;
+          request({
+            url,
+            type: 'delete',
+            success(res) {
+              Message.success(locale.delSuccessMsg);
+              self.getData();
+            },
+          });
+        },
+      });
+    }
+  }
+
   cloneSelectedDataConfirm() {
     const { locale = {} } = this.props;
     const self = this;
@@ -703,8 +750,8 @@ class ConfigurationManagement extends React.Component {
     self.field.setValue('cloneTargetSpace', undefined);
     if (configsTableSelected.size === 0) {
       Dialog.alert({
-        title: locale.exportSelectedAlertTitle,
-        content: locale.exportSelectedAlertContent,
+        title: locale.cloneSelectedAlertTitle,
+        content: locale.cloneSelectedAlertContent,
       });
       return;
     }
@@ -1257,7 +1304,16 @@ class ConfigurationManagement extends React.Component {
                     <div style={{ float: 'left' }}>
                       <Button
                         type={'primary'}
-                        style={{ marginLeft: 60, marginRight: 10 }}
+                        warning
+                        style={{ marginRight: 10 }}
+                        onClick={this.multipleSelectionDeletion.bind(this)}
+                        data-spm-click={'gostr=/aliyun;locaid=configsDelete'}
+                      >
+                        {locale.deleteAction}
+                      </Button>
+                      <Button
+                        type={'primary'}
+                        style={{ marginRight: 10 }}
                         onClick={this.exportSelectedData.bind(this)}
                         data-spm-click={'gostr=/aliyun;locaid=configsExport'}
                       >

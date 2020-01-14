@@ -49,7 +49,7 @@ public class ServerStateController {
         serverState.put("standalone_mode",SystemUtils.STANDALONE_MODE ?
             SystemUtils.STANDALONE_MODE_ALONE : SystemUtils.STANDALONE_MODE_CLUSTER);
 
-        serverState.put("function_mode", SystemUtils.FUNCTION_MODE);
+        serverState.put("function_mode", "All");
         serverState.put("version", VersionUtils.VERSION);
 
         return ResponseEntity.ok().body(serverState);

@@ -16,10 +16,24 @@
 
 package com.alibaba.nacos;
 
+import com.alibaba.nacos.core.utils.DateDeserializer;
+import com.alibaba.nacos.core.utils.DateSerializer;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import java.util.Date;
+
+import static com.alibaba.nacos.core.utils.SystemUtils.NACOS_HOME_KEY;
 
 /**
  * @author nacos
@@ -27,9 +41,28 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication(scanBasePackages = "com.alibaba.nacos")
 @ServletComponentScan
 @EnableScheduling
+@MapperScan("com.alibaba.nacos.config.server.mybatis.domain.mapper")
 public class Nacos {
 
     public static void main(String[] args) {
+//        System.setProperty(NACOS_HOME_KEY,"nacos");
         SpringApplication.run(Nacos.class, args);
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        javaTimeModule.addSerializer(Date.class, new DateSerializer());
+        javaTimeModule.addDeserializer(Date.class, new DateDeserializer());
+
+        SimpleModule simpleModule = new SimpleModule();
+
+        mapper.registerModules(simpleModule, javaTimeModule);
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
     }
 }

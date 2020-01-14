@@ -51,13 +51,8 @@ public class AuthChecker {
         if (StringUtils.equals(UtilsAndCommons.SUPER_TOKEN, token)) {
             return;
         }
+        String agent = WebUtils.getUserAgent(req);
 
-        String agent = req.getHeader("Client-Version");
-        if (StringUtils.startsWith(agent, UtilsAndCommons.NACOS_SERVER_HEADER)) {
-            return;
-        }
-
-        agent = req.getHeader("User-Agent");
         if (StringUtils.startsWith(agent, UtilsAndCommons.NACOS_SERVER_HEADER)) {
             return;
         }

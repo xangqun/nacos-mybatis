@@ -163,7 +163,7 @@
 
 
 
-    <logger name="org.springframework" level="debug"/>
+    <logger name="org.springframework" level="error"/>
 
     <!--开发环境:打印控制台-->
     <springProfile name="dev">
@@ -187,7 +187,7 @@
     </springProfile>
 
     <!--生产环境:输出到文件-->
-    <springProfile name="prod">
+    <springProfile name="prod,uat">
         <root level="error">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="DEBUG_FILE"/>
