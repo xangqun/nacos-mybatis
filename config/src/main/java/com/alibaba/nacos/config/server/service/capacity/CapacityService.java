@@ -16,9 +16,9 @@
 package com.alibaba.nacos.config.server.service.capacity;
 
 import com.alibaba.nacos.config.server.constant.CounterMode;
-import com.alibaba.nacos.config.server.model.capacity.Capacity;
-import com.alibaba.nacos.config.server.model.capacity.GroupCapacity;
-import com.alibaba.nacos.config.server.model.capacity.TenantCapacity;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.Capacity;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.GroupCapacity;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.TenantCapacity;
 import com.alibaba.nacos.config.server.service.PersistService;
 import com.alibaba.nacos.config.server.utils.LogUtil;
 import com.alibaba.nacos.config.server.utils.PropertyUtil;
@@ -149,7 +149,7 @@ public class CapacityService {
             }
             lastId = groupCapacityList.get(groupCapacityList.size() - 1).getId();
             for (GroupCapacity groupCapacity : groupCapacityList) {
-                String group = groupCapacity.getGroup();
+                String group = groupCapacity.getGroupId();
                 groupCapacityPersistService.correctUsage(group, TimeUtils.getCurrentTime());
             }
             try {
@@ -179,7 +179,7 @@ public class CapacityService {
                 // ignore
             }
             for (TenantCapacity tenantCapacity : tenantCapacityList) {
-                String tenant = tenantCapacity.getTenant();
+                String tenant = tenantCapacity.getTenantId();
                 tenantCapacityPersistService.correctUsage(tenant, TimeUtils.getCurrentTime());
             }
         }
@@ -348,7 +348,7 @@ public class CapacityService {
         try {
             final Timestamp now = TimeUtils.getCurrentTime();
             GroupCapacity groupCapacity = new GroupCapacity();
-            groupCapacity.setGroup(group);
+            groupCapacity.setGroupId(group);
             // 新增时，quota=0表示限额为默认值，为了在更新默认限额时只需修改nacos配置，而不需要更新表中大部分数据
             groupCapacity.setQuota(quota == null ? ZERO : quota);
             // 新增时，maxSize=0表示大小为默认值，为了在更新默认大小时只需修改nacos配置，而不需要更新表中大部分数据
@@ -369,7 +369,7 @@ public class CapacityService {
                                      boolean ignoreQuotaLimit) {
         final Timestamp now = TimeUtils.getCurrentTime();
         GroupCapacity groupCapacity = new GroupCapacity();
-        groupCapacity.setGroup(group);
+        groupCapacity.setGroupId(group);
         groupCapacity.setQuota(defaultQuota);
         groupCapacity.setGmtModified(now);
         if (CounterMode.INCREMENT == counterMode) {
@@ -403,7 +403,7 @@ public class CapacityService {
     private boolean updateTenantUsage(CounterMode counterMode, String tenant, boolean ignoreQuotaLimit) {
         final Timestamp now = TimeUtils.getCurrentTime();
         TenantCapacity tenantCapacity = new TenantCapacity();
-        tenantCapacity.setTenant(tenant);
+        tenantCapacity.setTenantId(tenant);
         tenantCapacity.setQuota(PropertyUtil.getDefaultTenantQuota());
         tenantCapacity.setGmtModified(now);
         if (CounterMode.INCREMENT == counterMode) {
@@ -450,7 +450,7 @@ public class CapacityService {
         try {
             final Timestamp now = TimeUtils.getCurrentTime();
             TenantCapacity tenantCapacity = new TenantCapacity();
-            tenantCapacity.setTenant(tenant);
+            tenantCapacity.setTenantId(tenant);
             // 新增时，quota=0表示限额为默认值，为了在更新默认限额时只需修改nacos配置，而不需要更新表中大部分数据
             tenantCapacity.setQuota(quota == null ? ZERO : quota);
             // 新增时，maxSize=0表示大小为默认值，为了在更新默认大小时只需修改nacos配置，而不需要更新表中大部分数据

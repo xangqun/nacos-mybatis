@@ -15,6 +15,8 @@
  */
 package com.alibaba.nacos.config.server.model;
 
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfoBeta;
+
 /**
  * beta Info
  *
@@ -30,6 +32,17 @@ public class ConfigInfo4Beta extends ConfigInfo {
     private String betaIps;
 
     public ConfigInfo4Beta() {
+    }
+
+    public ConfigInfo4Beta(ConfigInfoBeta configInfoBeta) {
+        this.setId(configInfoBeta.getId());
+        this.setGroupId(configInfoBeta.getGroupId());
+        this.setAppName(configInfoBeta.getAppName());
+        this.setTenant(configInfoBeta.getTenantId());
+        this.setContent(configInfoBeta.getContent());
+        this.setDataId(configInfoBeta.getDataId());
+        this.setMd5(configInfoBeta.getMd5());
+        this.setBetaIps(configInfoBeta.getBetaIps());
     }
 
     public ConfigInfo4Beta(String dataId, String group, String appName, String content, String betaIps) {

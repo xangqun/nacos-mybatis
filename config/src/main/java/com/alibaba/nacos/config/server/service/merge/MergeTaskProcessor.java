@@ -18,9 +18,9 @@ package com.alibaba.nacos.config.server.service.merge;
 import com.alibaba.nacos.config.server.constant.Constants;
 import com.alibaba.nacos.config.server.manager.AbstractTask;
 import com.alibaba.nacos.config.server.manager.TaskProcessor;
-import com.alibaba.nacos.config.server.model.ConfigInfo;
-import com.alibaba.nacos.config.server.model.ConfigInfoAggr;
-import com.alibaba.nacos.config.server.model.Page;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfo;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfoAggr;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.alibaba.nacos.config.server.service.ConfigDataChangeEvent;
 import com.alibaba.nacos.config.server.service.PersistService;
 import com.alibaba.nacos.config.server.service.trace.ConfigTraceService;
@@ -63,10 +63,10 @@ public class MergeTaskProcessor implements TaskProcessor {
             int rowCount = persistService.aggrConfigInfoCount(dataId, group, tenant);
             int pageCount = (int)Math.ceil(rowCount * 1.0 / PAGE_SIZE);
             for (int pageNo = 1; pageNo <= pageCount; pageNo++) {
-                Page<ConfigInfoAggr> page = persistService.findConfigInfoAggrByPage(dataId, group, tenant, pageNo,
+                IPage<ConfigInfoAggr> page = persistService.findConfigInfoAggrByPage(dataId, group, tenant, pageNo,
                     PAGE_SIZE);
                 if (page != null) {
-                    datumList.addAll(page.getPageItems());
+                    datumList.addAll(page.getRecords());
                     log.info("[merge-query] {}, {}, size/total={}/{}", dataId, group, datumList.size(), rowCount);
                 }
             }

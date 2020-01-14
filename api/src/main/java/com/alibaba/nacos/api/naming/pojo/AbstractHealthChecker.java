@@ -285,6 +285,90 @@ public abstract class AbstractHealthChecker implements Cloneable {
         }
     }
 
+    public static class DB extends AbstractHealthChecker {
+        public static final String TYPE = "DB";
+
+        private String user;
+        private String pwd;
+        private String cmd;
+
+        public DB() {
+            this.type = TYPE;
+        }
+
+        public String getCmd() {
+            return cmd;
+        }
+
+        public String getPwd() {
+            return pwd;
+        }
+
+        public String getUser() {
+            return user;
+        }
+
+        public void setUser(String user) {
+            this.user = user;
+        }
+
+        public void setCmd(String cmd) {
+            this.cmd = cmd;
+        }
+
+        public void setPwd(String pwd) {
+            this.pwd = pwd;
+        }
+
+        /**
+         * used to JsonAdapter
+         *
+         * @param writer
+         */
+        @Override
+        public void jsonAdapterCallback(SerializeWriter writer) {
+            writer.writeFieldValue(',', "user", getUser());
+            writer.writeFieldValue(',', "pwd", getPwd());
+            writer.writeFieldValue(',', "cmd", getCmd());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(user, pwd, cmd);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Mysql)) {
+                return false;
+            }
+
+            Mysql other = (Mysql) obj;
+
+            if (!strEquals(user, other.getUser())) {
+                return false;
+            }
+
+            if (!strEquals(pwd, other.getPwd())) {
+                return false;
+            }
+
+            return strEquals(cmd, other.getCmd());
+
+        }
+
+        @Override
+        public DB clone() throws CloneNotSupportedException {
+            DB config = new DB();
+            config.setUser(this.getUser());
+            config.setPwd(this.getPwd());
+            config.setCmd(this.getCmd());
+            config.setType(this.getType());
+
+            return config;
+        }
+    }
+
     private static boolean strEquals(String str1, String str2) {
         return str1 == null ? str2 == null : str1.equals(str2);
     }

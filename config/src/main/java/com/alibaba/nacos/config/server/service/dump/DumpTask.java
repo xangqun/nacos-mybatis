@@ -17,7 +17,7 @@ package com.alibaba.nacos.config.server.service.dump;
 
 import com.alibaba.nacos.config.server.manager.AbstractTask;
 import com.alibaba.nacos.config.server.manager.TaskProcessor;
-import com.alibaba.nacos.config.server.model.ConfigInfo;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfo;
 import com.alibaba.nacos.config.server.model.ConfigInfo4Beta;
 import com.alibaba.nacos.config.server.model.ConfigInfo4Tag;
 import com.alibaba.nacos.config.server.model.Page;
@@ -30,7 +30,7 @@ import com.alibaba.nacos.config.server.utils.GroupKey2;
 import com.alibaba.nacos.config.server.utils.LogUtil;
 import com.alibaba.nacos.config.server.utils.MD5;
 import com.alibaba.nacos.config.server.utils.StringUtils;
-
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -242,10 +242,10 @@ class DumpAllProcessor implements TaskProcessor {
         long currentMaxId = persistService.findConfigMaxId();
         long lastMaxId = 0;
         while (lastMaxId < currentMaxId) {
-            Page<PersistService.ConfigInfoWrapper> page = persistService.findAllConfigInfoFragment(lastMaxId,
+            IPage<PersistService.ConfigInfoWrapper> page = persistService.findAllConfigInfoFragment(lastMaxId,
                 PAGE_SIZE);
-            if (page != null && page.getPageItems() != null) {
-                for (PersistService.ConfigInfoWrapper cf : page.getPageItems()) {
+            if (page != null && page.getRecords() != null) {
+                for (PersistService.ConfigInfoWrapper cf : page.getRecords()) {
                     long id = cf.getId();
                     lastMaxId = id > lastMaxId ? id : lastMaxId;
                     if (cf.getDataId().equals(AggrWhitelist.AGGRIDS_METADATA)) {
@@ -260,13 +260,13 @@ class DumpAllProcessor implements TaskProcessor {
                         SwitchService.load(cf.getContent());
                     }
 
-                    boolean result = ConfigService.dump(cf.getDataId(), cf.getGroup(), cf.getTenant(), cf.getContent(),
+                    boolean result = ConfigService.dump(cf.getDataId(), cf.getGroupId(), cf.getTenantId(), cf.getContent(),
                         cf.getLastModified());
 
                     final String content = cf.getContent();
                     final String md5 = MD5.getInstance().getMD5String(content);
                     LogUtil.dumpLog.info("[dump-all-ok] {}, {}, length={}, md5={}",
-                        GroupKey2.getKey(cf.getDataId(), cf.getGroup()), cf.getLastModified(), content.length(), md5);
+                        GroupKey2.getKey(cf.getDataId(), cf.getGroupId()), cf.getLastModified(), content.length(), md5);
                 }
                 defaultLog.info("[all-dump] {} / {}", lastMaxId, currentMaxId);
             } else {
@@ -296,17 +296,17 @@ class DumpAllBetaProcessor implements TaskProcessor {
 
         int actualRowCount = 0;
         for (int pageNo = 1; pageNo <= pageCount; pageNo++) {
-            Page<ConfigInfoBetaWrapper> page = persistService.findAllConfigInfoBetaForDumpAll(pageNo, PAGE_SIZE);
+            IPage<ConfigInfoBetaWrapper> page = persistService.findAllConfigInfoBetaForDumpAll(pageNo, PAGE_SIZE);
             if (page != null) {
-                for (ConfigInfoBetaWrapper cf : page.getPageItems()) {
-                    boolean result = ConfigService.dumpBeta(cf.getDataId(), cf.getGroup(), cf.getTenant(),
+                for (ConfigInfoBetaWrapper cf : page.getRecords()) {
+                    boolean result = ConfigService.dumpBeta(cf.getDataId(), cf.getGroupId(), cf.getTenant(),
                         cf.getContent(), cf.getLastModified(), cf.getBetaIps());
                     LogUtil.dumpLog.info("[dump-all-beta-ok] result={}, {}, {}, length={}, md5={}", result,
-                        GroupKey2.getKey(cf.getDataId(), cf.getGroup()), cf.getLastModified(), cf.getContent()
+                        GroupKey2.getKey(cf.getDataId(), cf.getGroupId()), cf.getLastModified(), cf.getContent()
                             .length(), cf.getMd5());
                 }
 
-                actualRowCount += page.getPageItems().size();
+                actualRowCount += page.getRecords().size();
                 defaultLog.info("[all-dump-beta] {} / {}", actualRowCount, rowCount);
             }
         }
@@ -333,17 +333,17 @@ class DumpAllTagProcessor implements TaskProcessor {
 
         int actualRowCount = 0;
         for (int pageNo = 1; pageNo <= pageCount; pageNo++) {
-            Page<ConfigInfoTagWrapper> page = persistService.findAllConfigInfoTagForDumpAll(pageNo, PAGE_SIZE);
+            IPage<ConfigInfoTagWrapper> page = persistService.findAllConfigInfoTagForDumpAll(pageNo, PAGE_SIZE);
             if (page != null) {
-                for (ConfigInfoTagWrapper cf : page.getPageItems()) {
-                    boolean result = ConfigService.dumpTag(cf.getDataId(), cf.getGroup(), cf.getTenant(), cf.getTag(),
+                for (ConfigInfoTagWrapper cf : page.getRecords()) {
+                    boolean result = ConfigService.dumpTag(cf.getDataId(), cf.getGroupId(), cf.getTenant(), cf.getTag(),
                         cf.getContent(), cf.getLastModified());
                     LogUtil.dumpLog.info("[dump-all-Tag-ok] result={}, {}, {}, length={}, md5={}", result,
-                        GroupKey2.getKey(cf.getDataId(), cf.getGroup()), cf.getLastModified(), cf.getContent()
+                        GroupKey2.getKey(cf.getDataId(), cf.getGroupId()), cf.getLastModified(), cf.getContent()
                             .length(), cf.getMd5());
                 }
 
-                actualRowCount += page.getPageItems().size();
+                actualRowCount += page.getRecords().size();
                 defaultLog.info("[all-dump-tag] {} / {}", actualRowCount, rowCount);
             }
         }
@@ -377,7 +377,7 @@ class DumpChangeProcessor implements TaskProcessor {
         LogUtil.defaultLog.warn("updateMd5 count:{}", updateMd5List.size());
         for (ConfigInfoWrapper config : updateMd5List) {
             final String groupKey = GroupKey2.getKey(config.getDataId(),
-                config.getGroup());
+                config.getGroupId());
             ConfigService.updateMd5(groupKey, config.getMd5(),
                 config.getLastModified());
         }
@@ -391,9 +391,9 @@ class DumpChangeProcessor implements TaskProcessor {
             startTime, endTime);
         LogUtil.defaultLog.warn("deletedConfig count:{}", configDeleted.size());
         for (ConfigInfo configInfo : configDeleted) {
-            if (persistService.findConfigInfo(configInfo.getDataId(), configInfo.getGroup(),
-                configInfo.getTenant()) == null) {
-                ConfigService.remove(configInfo.getDataId(), configInfo.getGroup(), configInfo.getTenant());
+            if (persistService.findConfigInfo(configInfo.getDataId(), configInfo.getGroupId(),
+                configInfo.getTenantId()) == null) {
+                ConfigService.remove(configInfo.getDataId(), configInfo.getGroupId(), configInfo.getTenantId());
             }
         }
         long endDeletedConfigTime = System.currentTimeMillis();
@@ -406,14 +406,14 @@ class DumpChangeProcessor implements TaskProcessor {
             .findChangeConfig(startTime, endTime);
         LogUtil.defaultLog.warn("changeConfig count:{}", changeConfigs.size());
         for (PersistService.ConfigInfoWrapper cf : changeConfigs) {
-            boolean result = ConfigService.dumpChange(cf.getDataId(), cf.getGroup(), cf.getTenant(),
+            boolean result = ConfigService.dumpChange(cf.getDataId(), cf.getGroupId(), cf.getTenantId(),
                 cf.getContent(), cf.getLastModified());
             final String content = cf.getContent();
             final String md5 = MD5.getInstance().getMD5String(content);
             LogUtil.defaultLog.info(
                 "[dump-change-ok] {}, {}, length={}, md5={}",
                 new Object[] {
-                    GroupKey2.getKey(cf.getDataId(), cf.getGroup()),
+                    GroupKey2.getKey(cf.getDataId(), cf.getGroupId()),
                     cf.getLastModified(), content.length(), md5});
         }
         ConfigService.reloadConfig();

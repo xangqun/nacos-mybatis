@@ -15,6 +15,8 @@
  */
 package com.alibaba.nacos.config.server.model;
 
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfoTag;
+
 /**
  * tag info
  *
@@ -30,6 +32,18 @@ public class ConfigInfo4Tag extends ConfigInfo {
     private String tag;
 
     public ConfigInfo4Tag() {
+    }
+
+    public ConfigInfo4Tag(ConfigInfoTag configInfoTag) {
+        this.setId(configInfoTag.getId());
+        this.setGroupId(configInfoTag.getGroupId());
+        this.setAppName(configInfoTag.getAppName());
+        this.setTenant(configInfoTag.getTenantId());
+        this.setContent(configInfoTag.getContent());
+        this.setDataId(configInfoTag.getDataId());
+        this.setMd5(configInfoTag.getMd5());
+        this.setTag(configInfoTag.getTagId());
+
     }
 
     public ConfigInfo4Tag(String dataId, String group, String tag, String appName, String content) {

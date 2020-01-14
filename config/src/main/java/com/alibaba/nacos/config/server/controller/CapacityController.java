@@ -17,7 +17,7 @@ package com.alibaba.nacos.config.server.controller;
 
 import com.alibaba.nacos.config.server.constant.Constants;
 import com.alibaba.nacos.config.server.model.RestResult;
-import com.alibaba.nacos.config.server.model.capacity.Capacity;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.Capacity;
 import com.alibaba.nacos.config.server.service.capacity.CapacityService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,7 +45,9 @@ public class CapacityController {
     private final CapacityService capacityService;
 
     @Autowired
-    public CapacityController(CapacityService capacityService) {this.capacityService = capacityService;}
+    public CapacityController(CapacityService capacityService) {
+        this.capacityService = capacityService;
+    }
 
     @ResponseBody
     @RequestMapping(method = RequestMethod.GET)

@@ -226,7 +226,7 @@ public class ConfigSubService {
         SampleResult sampleCollectResult = new SampleResult();
         for (int i = 0; i < sampleTime; i++) {
             List<SampleResult> sampleResults = runCollectionJob(url, params, completionService, resultList);
-            if (sampleResults != null) {
+            if (sampleResults != null && !sampleResults.isEmpty()) {
                 sampleCollectResult = mergeSampleResult(sampleCollectResult, sampleResults);
             }
         }

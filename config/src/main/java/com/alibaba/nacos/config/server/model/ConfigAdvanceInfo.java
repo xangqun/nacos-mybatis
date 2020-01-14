@@ -15,6 +15,8 @@
  */
 package com.alibaba.nacos.config.server.model;
 
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfo;
+
 import java.io.Serializable;
 
 /**
@@ -34,6 +36,28 @@ public class ConfigAdvanceInfo implements Serializable {
     private String type;
     private String schema;
     private String configTags;
+
+    public ConfigAdvanceInfo(){}
+
+    public ConfigAdvanceInfo(ConfigInfo configInfo){
+        this.setCreateTime(configInfo.getGmtCreate().getTime());
+        this.setModifyTime(configInfo.getGmtModified().getTime());
+        this.setCreateUser(configInfo.getSrcUser());
+        this.setCreateIp(configInfo.getSrcIp());
+        this.setDesc(configInfo.getCDesc());
+        this.setUse(configInfo.getCUse());
+        this.setEffect(configInfo.getEffect());
+        this.setType(configInfo.getType());
+        this.setSchema(configInfo.getCSchema());
+        this.setDesc(configInfo.getCDesc());
+        this.setUse(configInfo.getCUse());
+        this.setSchema(configInfo.getCSchema());
+        this.setEffect(configInfo.getEffect());
+        this.setType(configInfo.getType());
+        this.setCreateUser(configInfo.getSrcUser());
+        this.setCreateTime(configInfo.getGmtCreate().getTime());
+        this.setModifyTime(configInfo.getGmtModified()==null?null:configInfo.getGmtModified().getTime());
+    }
 
     public long getCreateTime() {
         return createTime;

@@ -20,7 +20,7 @@ import com.alibaba.nacos.config.server.model.CacheItem;
 import com.alibaba.nacos.config.server.model.ConfigInfoBase;
 import com.alibaba.nacos.config.server.service.ConfigService;
 import com.alibaba.nacos.config.server.service.DiskUtil;
-import com.alibaba.nacos.config.server.service.LongPollingService;
+import com.alibaba.nacos.config.server.service.push.LongPollingService;
 import com.alibaba.nacos.config.server.service.PersistService;
 import com.alibaba.nacos.config.server.service.trace.ConfigTraceService;
 import com.alibaba.nacos.config.server.utils.*;
@@ -53,58 +53,10 @@ import static com.alibaba.nacos.config.server.utils.LogUtil.pullLog;
 public class ConfigServletInner {
 
     @Autowired
-    private LongPollingService longPollingService;
-
-    @Autowired
     private PersistService persistService;
 
     private static final int TRY_GET_LOCK_TIMES = 9;
 
-    private static final int START_LONGPOLLING_VERSION_NUM = 204;
-
-    /**
-     * 轮询接口
-     */
-    public String doPollingConfig(HttpServletRequest request, HttpServletResponse response,
-                                  Map<String, String> clientMd5Map, int probeRequestSize)
-        throws IOException, ServletException {
-
-        // 长轮询
-        if (LongPollingService.isSupportLongPolling(request)) {
-            longPollingService.addLongPollingClient(request, response, clientMd5Map, probeRequestSize);
-            return HttpServletResponse.SC_OK + "";
-        }
-
-        // else 兼容短轮询逻辑
-        List<String> changedGroups = MD5Util.compareMd5(request, response, clientMd5Map);
-
-        // 兼容短轮询result
-        String oldResult = MD5Util.compareMd5OldResult(changedGroups);
-        String newResult = MD5Util.compareMd5ResultString(changedGroups);
-
-        String version = request.getHeader(Constants.CLIENT_VERSION_HEADER);
-        if (version == null) {
-            version = "2.0.0";
-        }
-        int versionNum = Protocol.getVersionNumber(version);
-
-        /**
-         * 2.0.4版本以前, 返回值放入header中
-         */
-        if (versionNum < START_LONGPOLLING_VERSION_NUM) {
-            response.addHeader(Constants.PROBE_MODIFY_RESPONSE, oldResult);
-            response.addHeader(Constants.PROBE_MODIFY_RESPONSE_NEW, newResult);
-        } else {
-            request.setAttribute("content", newResult);
-        }
-
-        // 禁用缓存
-        response.setHeader("Pragma", "no-cache");
-        response.setDateHeader("Expires", 0);
-        response.setHeader("Cache-Control", "no-cache,no-store");
-        response.setStatus(HttpServletResponse.SC_OK);
-        return HttpServletResponse.SC_OK + "";
-    }
 
     /**
      * 同步配置获取接口
@@ -137,7 +89,7 @@ public class ConfigServletInner {
                 if (isBeta) {
                     md5 = cacheItem.getMd54Beta();
                     lastModified = cacheItem.getLastModifiedTs4Beta();
-                    if (STANDALONE_MODE && !PropertyUtil.isStandaloneUseMysql()) {
+                    if (STANDALONE_MODE) {
                         configInfoBase = persistService.findConfigInfo4Beta(dataId, group, tenant);
                     } else {
                         file = DiskUtil.targetBetaFile(dataId, group, tenant);
@@ -154,7 +106,7 @@ public class ConfigServletInner {
                                     lastModified = cacheItem.tagLastModifiedTs.get(autoTag);
                                 }
                             }
-                            if (STANDALONE_MODE && !PropertyUtil.isStandaloneUseMysql()) {
+                            if (STANDALONE_MODE) {
                                 configInfoBase = persistService.findConfigInfo4Tag(dataId, group, tenant, autoTag);
                             } else {
                                 file = DiskUtil.targetTagFile(dataId, group, tenant, autoTag);
@@ -165,7 +117,7 @@ public class ConfigServletInner {
                         } else {
                             md5 = cacheItem.getMd5();
                             lastModified = cacheItem.getLastModifiedTs();
-                            if (STANDALONE_MODE && !PropertyUtil.isStandaloneUseMysql()) {
+                            if (STANDALONE_MODE) {
                                 configInfoBase = persistService.findConfigInfo(dataId, group, tenant);
                             } else {
                                 file = DiskUtil.targetFile(dataId, group, tenant);
@@ -197,7 +149,7 @@ public class ConfigServletInner {
                                 }
                             }
                         }
-                        if (STANDALONE_MODE && !PropertyUtil.isStandaloneUseMysql()) {
+                        if (STANDALONE_MODE) {
                             configInfoBase = persistService.findConfigInfo4Tag(dataId, group, tenant, tag);
                         } else {
                             file = DiskUtil.targetTagFile(dataId, group, tenant, tag);
@@ -227,14 +179,14 @@ public class ConfigServletInner {
                 response.setHeader("Pragma", "no-cache");
                 response.setDateHeader("Expires", 0);
                 response.setHeader("Cache-Control", "no-cache,no-store");
-                if (STANDALONE_MODE && !PropertyUtil.isStandaloneUseMysql()) {
+                if (STANDALONE_MODE) {
                     response.setDateHeader("Last-Modified", lastModified);
                 } else {
                     fis = new FileInputStream(file);
                     response.setDateHeader("Last-Modified", file.lastModified());
                 }
 
-                if (STANDALONE_MODE && !PropertyUtil.isStandaloneUseMysql()) {
+                if (STANDALONE_MODE) {
                     out = response.getWriter();
                     out.print(configInfoBase.getContent());
                     out.flush();

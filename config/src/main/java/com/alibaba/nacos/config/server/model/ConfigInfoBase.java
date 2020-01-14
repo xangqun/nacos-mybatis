@@ -16,6 +16,14 @@
 package com.alibaba.nacos.config.server.model;
 
 import com.alibaba.nacos.config.server.utils.MD5;
+import com.alibaba.nacos.core.json.LongJsonDeserializer;
+import com.alibaba.nacos.core.json.LongJsonSerializer;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -31,30 +39,46 @@ public class ConfigInfoBase implements Serializable, Comparable<ConfigInfoBase> 
     /**
      * 不能增加字段
      */
-    private long id;
+    @TableId(value = "ID", type = IdType.ID_WORKER)
+    @JsonSerialize(using = LongJsonSerializer.class)
+    @JsonDeserialize(using = LongJsonDeserializer.class)
+    private Long id;
+    @TableField("DATA_ID")
     private String dataId;
-    private String group;
-    private String content;
+    @TableField("GROUP_ID")
+    @JsonProperty("group")
+    private String groupId;
+    @TableField("MD5")
     private String md5;
+    @TableField("CONTENT")
+    private String content;
 
     public ConfigInfoBase() {
 
     }
 
-    public ConfigInfoBase(String dataId, String group, String content) {
+    public ConfigInfoBase(com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfo configInfo){
+        this.setId(configInfo.getId());
+        this.setGroupId(configInfo.getGroupId());
+        this.setContent(configInfo.getContent());
+        this.setDataId(configInfo.getDataId());
+        this.setMd5(configInfo.getMd5());
+    }
+
+    public ConfigInfoBase(String dataId, String groupId, String content) {
         this.dataId = dataId;
-        this.group = group;
+        this.groupId = groupId;
         this.content = content;
         if (this.content != null) {
             this.md5 = MD5.getInstance().getMD5String(this.content);
         }
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -66,12 +90,12 @@ public class ConfigInfoBase implements Serializable, Comparable<ConfigInfoBase> 
         this.dataId = dataId;
     }
 
-    public String getGroup() {
-        return group;
+    public String getGroupId() {
+        return groupId;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
 
     public String getContent() {
@@ -116,17 +140,17 @@ public class ConfigInfoBase implements Serializable, Comparable<ConfigInfoBase> 
             }
         }
 
-        if (this.group == null) {
-            if (o.getGroup() == null) {
+        if (this.groupId == null) {
+            if (o.getGroupId() == null) {
                 return 0;
             } else {
                 return -1;
             }
         } else {
-            if (o.getGroup() == null) {
+            if (o.getGroupId() == null) {
                 return 1;
             } else {
-                int cmpGroup = this.group.compareTo(o.getGroup());
+                int cmpGroup = this.groupId.compareTo(o.getGroupId());
                 if (cmpGroup != 0) {
                     return cmpGroup;
                 }
@@ -158,7 +182,7 @@ public class ConfigInfoBase implements Serializable, Comparable<ConfigInfoBase> 
         int result = 1;
         result = prime * result + ((content == null) ? 0 : content.hashCode());
         result = prime * result + ((dataId == null) ? 0 : dataId.hashCode());
-        result = prime * result + ((group == null) ? 0 : group.hashCode());
+        result = prime * result + ((groupId == null) ? 0 : groupId.hashCode());
         result = prime * result + ((md5 == null) ? 0 : md5.hashCode());
         return result;
     }
@@ -189,11 +213,11 @@ public class ConfigInfoBase implements Serializable, Comparable<ConfigInfoBase> 
         } else if (!dataId.equals(other.dataId)) {
             return false;
         }
-        if (group == null) {
-            if (other.group != null) {
+        if (groupId == null) {
+            if (other.groupId != null) {
                 return false;
             }
-        } else if (!group.equals(other.group)) {
+        } else if (!groupId.equals(other.groupId)) {
             return false;
         }
         if (md5 == null) {
@@ -209,7 +233,7 @@ public class ConfigInfoBase implements Serializable, Comparable<ConfigInfoBase> 
     @Override
     public String toString() {
         return "ConfigInfoBase{" + "id=" + id + ", dataId='" + dataId + '\''
-            + ", group='" + group + '\'' + ", content='" + content + '\''
+            + ", groupId='" + groupId + '\'' + ", content='" + content + '\''
             + ", md5='" + md5 + '\'' + '}';
     }
 }

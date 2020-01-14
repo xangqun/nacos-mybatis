@@ -355,7 +355,7 @@ public class ClientWorker {
     /**
      * 从Server获取值变化了的DataID列表。返回的对象里只有dataId和group是有效的。 保证不返回NULL。
      */
-    List<String> checkUpdateConfigStr(String probeUpdateString, boolean isInitializingCacheList) throws IOException {
+    private List<String> checkUpdateConfigStr(String probeUpdateString, boolean isInitializingCacheList) throws IOException {
 
         List<String> params = Arrays.asList(Constants.PROBE_MODIFY_REQUEST, probeUpdateString);
 
@@ -374,8 +374,10 @@ public class ClientWorker {
         }
 
         try {
+            // Client socketTimeout time should be greater than Long-Pulling-Timeout,
+            // avoid due to server end task processing is not timely should not appear error
             HttpResult result = agent.httpPost(Constants.CONFIG_CONTROLLER_PATH + "/listener", headers, params,
-                agent.getEncode(), timeout);
+                agent.getEncode(), timeout+ (long)  Math.floor(timeout >> 1));
 
             if (HttpURLConnection.HTTP_OK == result.code) {
                 setHealthServer(true);

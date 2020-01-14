@@ -16,13 +16,14 @@
 package com.alibaba.nacos.config.server.service.merge;
 
 import com.alibaba.nacos.config.server.manager.TaskManager;
-import com.alibaba.nacos.config.server.model.ConfigInfo;
-import com.alibaba.nacos.config.server.model.ConfigInfoAggr;
-import com.alibaba.nacos.config.server.model.ConfigInfoChanged;
-import com.alibaba.nacos.config.server.model.Page;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfo;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfoAggr;
 import com.alibaba.nacos.config.server.service.PersistService;
 import com.alibaba.nacos.config.server.utils.ContentUtils;
 import com.alibaba.nacos.config.server.utils.TimeUtils;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.alibaba.nacos.config.server.model.ConfigInfoChanged;
+import com.alibaba.nacos.config.server.model.Page;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,8 +114,13 @@ public class MergeDatumService {
                     int rowCount = persistService.aggrConfigInfoCount(dataId, group, tenant);
                     int pageCount = (int)Math.ceil(rowCount * 1.0 / PAGE_SIZE);
                     for (int pageNo = 1; pageNo <= pageCount; pageNo++) {
-                        Page<ConfigInfoAggr> page = persistService.findConfigInfoAggrByPage(dataId, group, tenant,
+                        Page<ConfigInfoAggr> page = new Page<>();
+                        IPage<ConfigInfoAggr> configInfoAggrs = persistService.findConfigInfoAggrByPage(dataId, group, tenant,
                             pageNo, PAGE_SIZE);
+                        page.setTotalCount(Long.valueOf(configInfoAggrs.getTotal()).intValue());
+                        page.setPageNumber(Long.valueOf(configInfoAggrs.getCurrent()).intValue());
+                        page.setPagesAvailable(Long.valueOf(configInfoAggrs.getPages()).intValue());
+                        page.setPageItems(configInfoAggrs.getRecords());
                         if (page != null) {
                             datumList.addAll(page.getPageItems());
                             log.info("[merge-query] {}, {}, size/total={}/{}", dataId, group, datumList.size(),

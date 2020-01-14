@@ -16,16 +16,15 @@
 package com.alibaba.nacos.config.server.controller;
 
 import com.alibaba.nacos.config.server.constant.Constants;
-import com.alibaba.nacos.config.server.service.DataSourceService;
-import com.alibaba.nacos.config.server.service.DynamicDataSource;
 import com.alibaba.nacos.config.server.service.ServerListService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.jdbc.DataSourceHealthIndicator;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.PostConstruct;
 
 import static com.alibaba.nacos.core.utils.SystemUtils.LOCAL_IP;
 
@@ -38,26 +37,22 @@ import static com.alibaba.nacos.core.utils.SystemUtils.LOCAL_IP;
 @RequestMapping(Constants.HEALTH_CONTROLLER_PATH)
 public class HealthController {
 
-    private final DynamicDataSource dynamicDataSource;
-    private DataSourceService dataSourceService;
+
     private String heathUpStr = "UP";
     private String heathDownStr = "DOWN";
     private String heathWarnStr = "WARN";
 
     @Autowired
-    public HealthController(DynamicDataSource dynamicDataSource) {this.dynamicDataSource = dynamicDataSource;}
+    private DataSourceHealthIndicator dbHealthIndicator;
 
-    @PostConstruct
-    public void init() {
-        dataSourceService = dynamicDataSource.getDataSource();
-    }
 
     @ResponseBody
     @RequestMapping(method = RequestMethod.GET)
     public String getHealth() {
         // TODO UP DOWN WARN
         StringBuilder sb = new StringBuilder();
-        String dbStatus = dataSourceService.getHealth();
+        Health health = dbHealthIndicator.health();
+        String dbStatus = health.getStatus().getCode();
         if (dbStatus.contains(heathUpStr) && ServerListService.isAddressServerHealth() && ServerListService
             .isInIpList()) {
             sb.append(heathUpStr);

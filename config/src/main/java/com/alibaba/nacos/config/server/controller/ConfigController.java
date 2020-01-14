@@ -18,16 +18,18 @@ package com.alibaba.nacos.config.server.controller;
 import com.alibaba.nacos.config.server.constant.Constants;
 import com.alibaba.nacos.config.server.exception.NacosException;
 import com.alibaba.nacos.config.server.model.*;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfo;
 import com.alibaba.nacos.config.server.result.ResultBuilder;
 import com.alibaba.nacos.config.server.result.code.ResultCodeEnum;
 import com.alibaba.nacos.config.server.service.AggrWhitelist;
 import com.alibaba.nacos.config.server.service.ConfigDataChangeEvent;
 import com.alibaba.nacos.config.server.service.ConfigSubService;
 import com.alibaba.nacos.config.server.service.PersistService;
+import com.alibaba.nacos.config.server.service.push.LongPollingService;
 import com.alibaba.nacos.config.server.service.trace.ConfigTraceService;
 import com.alibaba.nacos.config.server.utils.*;
 import com.alibaba.nacos.config.server.utils.event.EventDispatcher;
-import com.google.common.base.Joiner;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
@@ -37,6 +39,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -77,13 +80,15 @@ public class ConfigController {
     private final transient PersistService persistService;
 
     private final transient ConfigSubService configSubService;
+    private final LongPollingService publishConfigDataChangeService;
 
     @Autowired
     public ConfigController(ConfigServletInner configServletInner, PersistService persistService,
-                            ConfigSubService configSubService) {
+                            ConfigSubService configSubService,LongPollingService publishConfigDataChangeService) {
         this.inner = configServletInner;
         this.persistService = persistService;
         this.configSubService = configSubService;
+        this.publishConfigDataChangeService=publishConfigDataChangeService;
     }
 
     /**
@@ -228,6 +233,32 @@ public class ConfigController {
         return true;
     }
 
+    /**
+     * @author klw
+     * @Description: delete configuration based on multiple config ids
+     * @Date 2019/7/5 10:26
+     * @Param [request, response, dataId, group, tenant, tag]
+     * @return java.lang.Boolean
+     */
+    @RequestMapping(params = "delType=ids", method = RequestMethod.DELETE)
+    @ResponseBody
+    public RestResult<Boolean> deleteConfigs(HttpServletRequest request, HttpServletResponse response,
+                                 @RequestParam(value = "ids")List<Long> ids) {
+        String clientIp = RequestUtil.getRemoteIp(request);
+        final Timestamp time = TimeUtils.getCurrentTime();
+        List<ConfigInfo> configInfoList = persistService.removeConfigInfoByIds(ids, clientIp, null);
+        if(!CollectionUtils.isEmpty(configInfoList)){
+            for(ConfigInfo configInfo : configInfoList) {
+                ConfigTraceService.logPersistenceEvent(configInfo.getDataId(), configInfo.getGroupId(),
+                    configInfo.getTenantId(), null, time.getTime(), clientIp,
+                    ConfigTraceService.PERSISTENCE_EVENT_REMOVE, null);
+                EventDispatcher.fireEvent(new ConfigDataChangeEvent(false, configInfo.getDataId(),
+                    configInfo.getGroupId(), configInfo.getTenantId(), time.getTime()));
+            }
+        }
+        return ResultBuilder.buildSuccessResult(true);
+    }
+
     @RequestMapping(value = "/catalog", method = RequestMethod.GET)
     @ResponseBody
     public RestResult<ConfigAdvanceInfo> getConfigAdvanceInfo(HttpServletRequest request, HttpServletResponse response,
@@ -264,7 +295,8 @@ public class ConfigController {
         }
 
         // do long-polling
-        inner.doPollingConfig(request, response, clientMd5Map, probeModify.length());
+//        inner.doPollingConfig(request, response, clientMd5Map, probeModify.length());
+        publishConfigDataChangeService.createWatch(request, response, clientMd5Map, probeModify.length());
     }
 
     /**
@@ -312,8 +344,16 @@ public class ConfigController {
             configAdvanceInfo.put("config_tags", configTags);
         }
         try {
-            return persistService.findConfigInfo4Page(pageNo, pageSize, dataId, group, tenant,
-                configAdvanceInfo);
+//            return persistService.findConfigInfo4Page(pageNo, pageSize, dataId, group, tenant,
+//                configAdvanceInfo);
+            Page<ConfigInfo> page=new Page<ConfigInfo>();
+            IPage<ConfigInfo> configInfoIPage= persistService.findConfigInfo4Page(pageNo, pageSize, dataId, group, tenant,
+                    configAdvanceInfo);
+            page.setTotalCount(Long.valueOf(configInfoIPage.getTotal()).intValue());
+            page.setPageNumber(Long.valueOf(configInfoIPage.getCurrent()).intValue());
+            page.setPagesAvailable(Long.valueOf(configInfoIPage.getPages()).intValue());
+            page.setPageItems(configInfoIPage.getRecords());
+            return page;
         } catch (Exception e) {
             String errorMsg = "serialize page error, dataId=" + dataId + ", group=" + group;
             log.error(errorMsg, e);
@@ -343,8 +383,16 @@ public class ConfigController {
             configAdvanceInfo.put("config_tags", configTags);
         }
         try {
-            return persistService.findConfigInfoLike4Page(pageNo, pageSize, dataId, group, tenant,
-                configAdvanceInfo);
+//            return persistService.findConfigInfoLike4Page(pageNo, pageSize, dataId, group, tenant,
+//                configAdvanceInfo);
+            Page<ConfigInfo> page=new Page<ConfigInfo>();
+            IPage<ConfigInfo> configInfoIPage= persistService.findConfigInfoLike4Page(pageNo, pageSize, dataId, group, tenant,
+                    configAdvanceInfo);
+            page.setTotalCount(Long.valueOf(configInfoIPage.getTotal()).intValue());
+            page.setPageNumber(Long.valueOf(configInfoIPage.getCurrent()).intValue());
+            page.setPagesAvailable(Long.valueOf(configInfoIPage.getPages()).intValue());
+            page.setPageItems(configInfoIPage.getRecords());
+            return page;
         } catch (Exception e) {
             String errorMsg = "serialize page error, dataId=" + dataId + ", group=" + group;
             log.error(errorMsg, e);
@@ -402,14 +450,14 @@ public class ConfigController {
     @ResponseBody
     public ResponseEntity<byte[]> exportConfig(HttpServletRequest request,
                                                HttpServletResponse response,
-                                               @RequestParam("group") String group,
+                                               @RequestParam(value = "dataId", required = false) String dataId,
+                                               @RequestParam(value = "group", required = false) String group,
                                                @RequestParam(value = "appName", required = false) String appName,
                                                @RequestParam(value = "tenant", required = false,
                                                    defaultValue = StringUtils.EMPTY) String tenant,
                                                @RequestParam(value = "ids", required = false)List<Long> ids) {
         ids.removeAll(Collections.singleton(null));
-        String idsStr = Joiner.on(",").join(ids);
-        List<ConfigInfo> dataList = persistService.findAllConfigInfo4Export(group, tenant, appName, idsStr);
+        List<ConfigInfo> dataList = persistService.findAllConfigInfo4Export(dataId, group, tenant, appName, ids);
         List<ZipUtils.ZipItem> zipItemList = new ArrayList<>();
         StringBuilder metaData = null;
         for(ConfigInfo ci : dataList){
@@ -423,11 +471,11 @@ public class ConfigController {
                     metaDataId = metaDataId.substring(0,metaDataId.lastIndexOf("."))
                         + "~" + metaDataId.substring(metaDataId.lastIndexOf(".") + 1);
                 }
-                metaData.append(ci.getGroup()).append(".").append(metaDataId).append(".app=")
+                metaData.append(ci.getGroupId()).append(".").append(metaDataId).append(".app=")
                     // Fixed use of "\r\n" here
                     .append(ci.getAppName()).append("\r\n");
             }
-            String itemName = ci.getGroup() + "/" + ci.getDataId() ;
+            String itemName = ci.getGroupId() + "/" + ci.getDataId() ;
             zipItemList.add(new ZipUtils.ZipItem(itemName, ci.getContent()));
         }
         if(metaData != null){
@@ -491,8 +539,8 @@ public class ConfigController {
                     }
                     String metaDataId = group + "." + tempDataId + ".app";
                     ConfigInfo ci = new ConfigInfo();
-                    ci.setTenant(namespace);
-                    ci.setGroup(group);
+                    ci.setTenantId(namespace);
+                    ci.setGroupId(group);
                     ci.setDataId(dataId);
                     ci.setContent(item.getItemData());
                     if(metaDataMap.get(metaDataId) != null){
@@ -516,10 +564,10 @@ public class ConfigController {
         Map<String, Object> saveResult = persistService.batchInsertOrUpdate(configInfoList, srcUser, srcIp,
             null, time, false, policy);
         for (ConfigInfo configInfo : configInfoList) {
-            EventDispatcher.fireEvent(new ConfigDataChangeEvent(false, configInfo.getDataId(), configInfo.getGroup(),
-                configInfo.getTenant(), time.getTime()));
-            ConfigTraceService.logPersistenceEvent(configInfo.getDataId(), configInfo.getGroup(),
-                configInfo.getTenant(), requestIpApp, time.getTime(),
+            EventDispatcher.fireEvent(new ConfigDataChangeEvent(false, configInfo.getDataId(), configInfo.getGroupId(),
+                configInfo.getTenantId(), time.getTime()));
+            ConfigTraceService.logPersistenceEvent(configInfo.getDataId(), configInfo.getGroupId(),
+                configInfo.getTenantId(), requestIpApp, time.getTime(),
                 LOCAL_IP, ConfigTraceService.PERSISTENCE_EVENT_PUB, configInfo.getContent());
         }
         return ResultBuilder.buildSuccessResult("导入成功", saveResult);
@@ -544,8 +592,7 @@ public class ConfigController {
         }
 
         ids.removeAll(Collections.singleton(null));
-        String idsStr = Joiner.on(",").join(ids);
-        List<ConfigInfo> queryedDataList = persistService.findAllConfigInfo4Export(null, null, null, idsStr);
+        List<ConfigInfo> queryedDataList = persistService.findAllConfigInfo4Export(null,null, null, null, ids);
 
         if(queryedDataList == null || queryedDataList.isEmpty()){
             failedData.put("succCount", 0);
@@ -556,8 +603,8 @@ public class ConfigController {
 
         for(ConfigInfo ci : queryedDataList){
             ConfigInfo ci4save = new ConfigInfo();
-            ci4save.setTenant(namespace);
-            ci4save.setGroup(ci.getGroup());
+            ci4save.setTenantId(namespace);
+            ci4save.setGroupId(ci.getGroupId());
             ci4save.setDataId(ci.getDataId());
             ci4save.setContent(ci.getContent());
             if(StringUtils.isNotBlank(ci.getAppName())){
@@ -576,10 +623,10 @@ public class ConfigController {
         Map<String, Object> saveResult = persistService.batchInsertOrUpdate(configInfoList4Clone, srcUser, srcIp,
             null, time, false, policy);
         for (ConfigInfo configInfo : configInfoList4Clone) {
-            EventDispatcher.fireEvent(new ConfigDataChangeEvent(false, configInfo.getDataId(), configInfo.getGroup(),
-                configInfo.getTenant(), time.getTime()));
-            ConfigTraceService.logPersistenceEvent(configInfo.getDataId(), configInfo.getGroup(),
-                configInfo.getTenant(), requestIpApp, time.getTime(),
+            EventDispatcher.fireEvent(new ConfigDataChangeEvent(false, configInfo.getDataId(), configInfo.getGroupId(),
+                configInfo.getTenantId(), time.getTime()));
+            ConfigTraceService.logPersistenceEvent(configInfo.getDataId(), configInfo.getGroupId(),
+                configInfo.getTenantId(), requestIpApp, time.getTime(),
                 LOCAL_IP, ConfigTraceService.PERSISTENCE_EVENT_PUB, configInfo.getContent());
         }
         return ResultBuilder.buildSuccessResult("导入成功", saveResult);

@@ -17,14 +17,15 @@ package com.alibaba.nacos.config.server.service.dump;
 
 import com.alibaba.nacos.config.server.constant.Constants;
 import com.alibaba.nacos.config.server.manager.TaskManager;
-import com.alibaba.nacos.config.server.model.ConfigInfo;
-import com.alibaba.nacos.config.server.model.ConfigInfoAggr;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfo;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfoAggr;
 import com.alibaba.nacos.config.server.model.ConfigInfoChanged;
 import com.alibaba.nacos.config.server.model.Page;
 import com.alibaba.nacos.config.server.service.*;
 import com.alibaba.nacos.config.server.service.PersistService.ConfigInfoWrapper;
 import com.alibaba.nacos.config.server.service.merge.MergeTaskProcessor;
 import com.alibaba.nacos.config.server.utils.*;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -353,10 +354,10 @@ public class DumpService {
                     int rowCount = persistService.aggrConfigInfoCount(dataId, group, tenant);
                     int pageCount = (int)Math.ceil(rowCount * 1.0 / PAGE_SIZE);
                     for (int pageNo = 1; pageNo <= pageCount; pageNo++) {
-                        Page<ConfigInfoAggr> page = persistService.findConfigInfoAggrByPage(dataId, group, tenant,
+                        IPage<ConfigInfoAggr> page = persistService.findConfigInfoAggrByPage(dataId, group, tenant,
                             pageNo, PAGE_SIZE);
                         if (page != null) {
-                            datumList.addAll(page.getPageItems());
+                            datumList.addAll(page.getRecords());
                             log.info("[merge-query] {}, {}, size/total={}/{}", dataId, group, datumList.size(),
                                 rowCount);
                         }

@@ -41,12 +41,16 @@ public class MD5Util {
 
     static public List<String> compareMd5(HttpServletRequest request,
                                           HttpServletResponse response, Map<String, String> clientMd5Map) {
-        List<String> changedGroupKeys = new ArrayList<String>();
         String tag = request.getHeader("Vipserver-Tag");
+        String ip = RequestUtil.getRemoteIp(request);
+        return compareMd5(tag, ip, clientMd5Map);
+    }
+
+    static public List<String> compareMd5(String tag, String ip, Map<String, String> clientMd5Map) {
+        List<String> changedGroupKeys = new ArrayList<String>();
         for (Map.Entry<String, String> entry : clientMd5Map.entrySet()) {
             String groupKey = entry.getKey();
             String clientMd5 = entry.getValue();
-            String ip = RequestUtil.getRemoteIp(request);
             boolean isUptodate = ConfigService.isUptodate(groupKey, clientMd5, ip, tag);
             if (!isUptodate) {
                 changedGroupKeys.add(groupKey);
@@ -54,6 +58,8 @@ public class MD5Util {
         }
         return changedGroupKeys;
     }
+
+
 
     static public String compareMd5OldResult(List<String> changedGroupKeys) {
         StringBuilder sb = new StringBuilder();

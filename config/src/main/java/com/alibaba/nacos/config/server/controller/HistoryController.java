@@ -19,6 +19,7 @@ import com.alibaba.nacos.config.server.constant.Constants;
 import com.alibaba.nacos.config.server.model.ConfigHistoryInfo;
 import com.alibaba.nacos.config.server.model.Page;
 import com.alibaba.nacos.config.server.service.PersistService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -60,7 +61,14 @@ public class HistoryController {
         pageSize = null == pageSize ? Integer.valueOf(100) : pageSize;
         pageSize = pageSize > 500 ? Integer.valueOf(500) : pageSize;
         // configInfoBase没有appName字段
-        return persistService.findConfigHistory(dataId, group, tenant, pageNo, pageSize);
+//        return persistService.findConfigHistory(dataId, group, tenant, pageNo, pageSize);
+        Page<ConfigHistoryInfo> page=new Page<ConfigHistoryInfo>();
+        IPage<ConfigHistoryInfo> configInfoIPage= persistService.findConfigHistory(dataId, group, tenant, pageNo, pageSize);
+        page.setTotalCount(Long.valueOf(configInfoIPage.getTotal()).intValue());
+        page.setPageNumber(Long.valueOf(configInfoIPage.getCurrent()).intValue());
+        page.setPagesAvailable(Long.valueOf(configInfoIPage.getPages()).intValue());
+        page.setPageItems(configInfoIPage.getRecords());
+        return page;
     }
 
     /**

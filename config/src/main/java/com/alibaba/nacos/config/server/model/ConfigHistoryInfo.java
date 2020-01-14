@@ -15,6 +15,12 @@
  */
 package com.alibaba.nacos.config.server.model;
 
+import com.alibaba.nacos.config.server.mybatis.domain.entity.HisConfigInfo;
+import com.alibaba.nacos.core.json.LongJsonDeserializer;
+import com.alibaba.nacos.core.json.LongJsonSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.sql.Timestamp;
 
 /**
@@ -28,24 +34,63 @@ public class ConfigHistoryInfo {
      * id, nid, data_id, group_id, content, md5, gmt_create, gmt_modified, （配置创建时间，配置变更时间） src_user, src_ip, (变更操作者)
      * op_type（变更操作类型）
      */
-
-    private long id;
+    @JsonSerialize(using = LongJsonSerializer.class)
+    @JsonDeserialize(using = LongJsonDeserializer.class)
+    private Long id;
     /**
      * 上次改动历史的id
      */
     private long lastId = -1;
-
+    @JsonSerialize(using = LongJsonSerializer.class)
+    @JsonDeserialize(using = LongJsonDeserializer.class)
+    private Long nid;
     private String dataId;
     private String group;
     private String tenant;
     private String appName;
     private String md5;
+    private String content;
+    private String srcIp;
+    private String srcUser;
+    /**
+     * 操作类型, 包括插入、更新、删除
+     */
+    private String opType;
+    private Timestamp createdTime;
+    private Timestamp lastModifiedTime;
 
-    public long getId() {
+
+    public ConfigHistoryInfo(HisConfigInfo hisConfigInfo){
+        this.id=hisConfigInfo.getId();
+        this.dataId=hisConfigInfo.getDataId();
+        this.group=hisConfigInfo.getGroupId();
+        this.tenant=hisConfigInfo.getTenantId();
+        this.appName=hisConfigInfo.getAppName();
+        this.md5=hisConfigInfo.getMd5();
+        this.srcIp=hisConfigInfo.getSrcIp();
+        this.srcUser=hisConfigInfo.getSrcUser();
+        this.opType=hisConfigInfo.getOpType();
+        this.createdTime=hisConfigInfo.getGmtCreate()==null?null:new Timestamp(hisConfigInfo.getGmtCreate().getTime());
+        this.lastModifiedTime=hisConfigInfo.getGmtModified()==null?null:new Timestamp(hisConfigInfo.getGmtModified().getTime());
+        this.content=hisConfigInfo.getContent();
+        /* 20190919 这里缺少了nid，唯一识别一个规则的字段，需要加入 */
+        this.nid =hisConfigInfo.getNid();
+    }
+
+
+    public Long getNid() {
+        return nid;
+    }
+
+    public void setNid(Long nid) {
+        this.nid = nid;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -114,19 +159,19 @@ public class ConfigHistoryInfo {
     }
 
     public Timestamp getCreatedTime() {
-        return new Timestamp(createdTime.getTime());
+        return createdTime;
     }
 
     public void setCreatedTime(Timestamp createdTime) {
-        this.createdTime = new Timestamp(createdTime.getTime());
+        this.createdTime = createdTime;
     }
 
     public Timestamp getLastModifiedTime() {
-        return new Timestamp(lastModifiedTime.getTime());
+        return lastModifiedTime;
     }
 
     public void setLastModifiedTime(Timestamp lastModifiedTime) {
-        this.lastModifiedTime = new Timestamp(lastModifiedTime.getTime());
+        this.lastModifiedTime = lastModifiedTime;
     }
 
     public String getAppName() {
@@ -144,16 +189,4 @@ public class ConfigHistoryInfo {
     public void setMd5(String md5) {
         this.md5 = md5;
     }
-
-    private String content;
-
-    private String srcIp;
-    private String srcUser;
-    /**
-     * 操作类型, 包括插入、更新、删除
-     */
-    private String opType;
-
-    private Timestamp createdTime;
-    private Timestamp lastModifiedTime;
 }

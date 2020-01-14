@@ -41,6 +41,25 @@ public class ConfigAllInfo extends ConfigInfo {
     public ConfigAllInfo() {
     }
 
+    public ConfigAllInfo(com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfo configInfo){
+        this.setId(configInfo.getId());
+        this.setGroupId(configInfo.getGroupId());
+        this.setAppName(configInfo.getAppName());
+        this.setTenant(configInfo.getTenantId());
+        this.setContent(configInfo.getContent());
+        this.setDataId(configInfo.getDataId());
+        this.setMd5(configInfo.getMd5());
+        this.setDesc(configInfo.getCDesc());
+        this.setUse(configInfo.getCUse());
+        this.setSchema(configInfo.getCSchema());
+        this.setEffect(configInfo.getEffect());
+        this.setType(configInfo.getType());
+        this.setCreateUser(configInfo.getSrcUser());
+        this.setCreateTime(configInfo.getGmtCreate().getTime());
+        this.setModifyTime(configInfo.getGmtModified()==null?null:configInfo.getGmtModified().getTime());
+
+    }
+
     public long getCreateTime() {
         return createTime;
     }

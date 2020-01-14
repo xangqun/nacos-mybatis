@@ -17,8 +17,8 @@ package com.alibaba.nacos.config.server.aspect;
 
 import com.alibaba.nacos.config.server.constant.Constants;
 import com.alibaba.nacos.config.server.constant.CounterMode;
-import com.alibaba.nacos.config.server.model.ConfigInfo;
-import com.alibaba.nacos.config.server.model.capacity.Capacity;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.Capacity;
+import com.alibaba.nacos.config.server.mybatis.domain.entity.ConfigInfo;
 import com.alibaba.nacos.config.server.service.PersistService;
 import com.alibaba.nacos.config.server.service.capacity.CapacityService;
 import com.alibaba.nacos.config.server.utils.PropertyUtil;

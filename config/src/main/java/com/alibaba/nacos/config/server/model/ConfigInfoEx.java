@@ -76,7 +76,7 @@ public class ConfigInfoEx extends ConfigInfo {
     @Override
     public String toString() {
         return "ConfigInfoEx [status=" + status + ", message=" + message
-            + ", dataId=" + getDataId() + ", group=" + getGroup()
+            + ", dataId=" + getDataId() + ", group=" + getGroupId()
             + ", appName=" + getAppName() + ", content=" + getContent()
             + "]";
     }
